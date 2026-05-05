@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+model Game {
+  gameId                 String    @id @db.Char(3) @map("game_id")
+  playerCount            Int?      @map("player_count")
+  winnerSide             String?   @db.VarChar(20) @map("winner_side")
+  assassinTargetSeatNo   Int?      @map("assassin_target_seat_no")
+  gameDate               DateTime? @db.Date @map("game_date")
+
+  players   Player[]
+  missions  Mission[]
+
+  @@map("GAME")
+}
+
+model Player {
+  gameId     String @db.Char(3) @map("game_id")
+  seatNumber Int    @map("seat_number")
+  role       String? @db.VarChar(50)
+
+  game Game @relation(fields: [gameId], references: [gameId])
+
+  proposalContains ProposalContains[]
+  voteProposals    VoteProposal[]
+
+  @@id([gameId, seatNumber])
+  @@map("PLAYER")
+}
+
+model Mission {
+  gameId        String @db.Char(3) @map("game_id")
+  missionNo     Int    @map("mission_no")
+  teamSize      Int?   @map("team_size")
+  failCount     Int    @default(0) @map("fail_count")
+  missionResult String? @db.VarChar(20) @map("mission_result")
+
+  game Game @relation(fields: [gameId], references: [gameId])
+
+  proposals      Proposal[]
+  becomesMission BecomesMission[]
+
+  @@id([gameId, missionNo])
+  @@map("MISSION")
+}
+
+model Proposal {
+  gameId       String @db.Char(3) @map("game_id")
+  missionNo    Int    @map("mission_no")
+  proposalNo   Int    @map("proposal_no")
+  leaderSeatNo Int?   @map("leader_seat_no")
+  voteResult   String? @db.VarChar(20) @map("vote_result")
+  yesAmount    Int?   @map("yes_amount")
+  noAmount     Int?   @map("no_amount")
+
+  mission Mission @relation(fields: [gameId, missionNo], references: [gameId, missionNo])
+
+  proposalContains ProposalContains[]
+  voteProposals    VoteProposal[]
+  becomesMission   BecomesMission?
+
+  @@id([gameId, missionNo, proposalNo])
+  @@map("PROPOSAL")
+}
+
+model ProposalContains {
+  gameId        String  @db.Char(3) @map("game_id")
+  missionNo     Int     @map("mission_no")
+  proposalNo    Int     @map("proposal_no")
+  seatNumber    Int     @map("seat_number")
+  containsOrNot Boolean @default(false) @map("contains_or_not")
+
+  proposal Proposal @relation(fields: [gameId, missionNo, proposalNo], references: [gameId, missionNo, proposalNo])
+  player   Player   @relation(fields: [gameId, seatNumber], references: [gameId, seatNumber])
+
+  @@id([gameId, missionNo, proposalNo, seatNumber])
+  @@map("PROPOSAL_CONTAINS")
+}
+
+model VoteProposal {
+  gameId     String  @db.Char(3) @map("game_id")
+  seatNumber Int     @map("seat_number")
+  missionNo  Int     @map("mission_no")
+  proposalNo Int     @map("proposal_no")
+  voteYN      Boolean? @map("vote_y_n")
+
+  proposal Proposal @relation(fields: [gameId, missionNo, proposalNo], references: [gameId, missionNo, proposalNo])
+  player   Player   @relation(fields: [gameId, seatNumber], references: [gameId, seatNumber])
+
+  @@id([gameId, seatNumber, missionNo, proposalNo])
+  @@map("VOTE_PROPOSAL")
+}
+
+model BecomesMission {
+  gameId        String  @db.Char(3) @map("game_id")
+  missionNo     Int     @map("mission_no")
+  proposalNo    Int     @map("proposal_no")
+  succeedAmount Int?    @map("succeed_amount")
+  failAmount    Int?    @map("fail_amount")
+  fiveFails     Boolean @default(false) @map("five_fails")
+
+  mission  Mission  @relation(fields: [gameId, missionNo], references: [gameId, missionNo])
+  proposal Proposal @relation(fields: [gameId, missionNo, proposalNo], references: [gameId, missionNo, proposalNo])
+
+  @@id([gameId, missionNo, proposalNo])
+  @@map("BECOMES_MISSION")
+}
