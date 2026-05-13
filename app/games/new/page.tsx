@@ -3,165 +3,137 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const roles = [
-  "MERLIN",
-  "PERCIVAL",
-  "LOYAL_SERVANT",
-  "ASSASSIN",
-  "MORGANA",
-  "MORDRED",
-  "OBERON",
-  "MINION",
-];
-
 export default function NewGamePage() {
   const router = useRouter();
 
-  const [gameId, setGameId] = useState("001");
-  const [winnerSide, setWinnerSide] = useState("GOOD");
+  const [gameId, setGameId] = useState("");
+  const [playerCount, setPlayerCount] = useState("");
+  const [winnerSide, setWinnerSide] = useState("");
   const [assassinTargetSeatNo, setAssassinTargetSeatNo] = useState("");
   const [gameDate, setGameDate] = useState("");
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const [players, setPlayers] = useState(
-    Array.from({ length: 8 }, (_, i) => ({
-      seatNumber: i + 1,
-      role: roles[i],
-    }))
-  );
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  async function createGame() {
-    setError("");
+    setLoading(true);
+    setErrorMessage("");
 
-    const res = await fetch("/api/games", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        gameId,
-        winnerSide,
-        assassinTargetSeatNo: assassinTargetSeatNo
-          ? Number(assassinTargetSeatNo)
-          : null,
-        gameDate: gameDate || null,
-        players,
-      }),
-    });
+    const payload = {
+      gameId,
+      playerCount,
+      winnerSide,
+      assassinTargetSeatNo,
+      gameDate,
+    };
 
-    const data = await res.json();
+    try {
+      const response = await fetch("/api/games", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    if (!res.ok) {
-      setError(data.error || "建立遊戲失敗");
-      return;
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || "新增遊戲失敗");
+      }
+
+      router.push("/games");
+      router.refresh();
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("發生未知錯誤");
+      }
+    } finally {
+      setLoading(false);
     }
-
-    router.push(`/games/${data.gameId}`);
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white p-8">
-      <div className="mx-auto max-w-4xl">
-        <h1 className="text-3xl font-bold mb-6">建立新遊戲</h1>
+    <div>
+      <h1 className="page-title">新增遊戲</h1>
+      <p className="page-subtitle">
+        建立一筆新的 Avalon 遊戲紀錄。
+      </p>
 
-        {error && (
-          <p className="mb-4 rounded-lg bg-red-900 p-3 text-red-100">
-            {error}
-          </p>
-        )}
-
-        <div className="mb-4">
-          <label className="block mb-2">Game ID</label>
+      <form className="form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label>Game ID</label>
           <input
-            className="w-full rounded-xl p-3 text-white bg-slate-800 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="text"
             value={gameId}
             onChange={(e) => setGameId(e.target.value)}
-            placeholder="001"
+            placeholder="例如 G01"
+            maxLength={3}
+            required
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-2">勝利方</label>
+        <div className="form-group">
+          <label>玩家數</label>
+          <input
+            type="number"
+            value={playerCount}
+            onChange={(e) => setPlayerCount(e.target.value)}
+            placeholder="例如 7"
+            min="5"
+            max="10"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>勝利陣營</label>
           <select
-            className="w-full rounded-xl p-3 text-white bg-slate-800 border border-slate-600"
             value={winnerSide}
             onChange={(e) => setWinnerSide(e.target.value)}
           >
-            <option value="GOOD">GOOD</option>
-            <option value="EVIL">EVIL</option>
+            <option value="">尚未決定</option>
+            <option value="Good">Good</option>
+            <option value="Evil">Evil</option>
           </select>
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-2">刺客目標座位</label>
+        <div className="form-group">
+          <label>刺客目標座位</label>
           <input
             type="number"
-            className="w-full rounded-xl p-3 text-white bg-slate-800 border border-slate-600"
             value={assassinTargetSeatNo}
             onChange={(e) => setAssassinTargetSeatNo(e.target.value)}
-            placeholder="例如 1"
+            placeholder="例如 3"
+            min="1"
+            max="10"
           />
         </div>
 
-        <div className="mb-6">
-          <label className="block mb-2">遊戲日期</label>
+        <div className="form-group">
+          <label>遊戲日期</label>
           <input
             type="date"
-            className="w-full rounded-xl p-3 text-white bg-slate-800 border border-slate-600"
             value={gameDate}
             onChange={(e) => setGameDate(e.target.value)}
           />
         </div>
 
-        <h2 className="text-xl font-semibold mb-3">玩家角色</h2>
-
-        <div className="grid gap-4">
-          {players.map((player, index) => (
-            <div
-              key={player.seatNumber}
-              className="grid grid-cols-2 gap-3 bg-slate-900 p-4 rounded-xl"
-            >
-              <div className="rounded-lg p-2 bg-slate-800">
-                座位 {player.seatNumber}
-              </div>
-
-              <select
-                className="rounded-lg p-2 text-white bg-slate-800 border border-slate-600"
-                value={player.role}
-                onChange={(e) => {
-                  const copy = [...players];
-                  copy[index] = {
-                    ...copy[index],
-                    role: e.target.value,
-                  };
-                  setPlayers(copy);
-                }}
-              >
-                {roles.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ))}
-        </div>
+        {errorMessage && (
+          <p style={{ color: "#f87171", marginBottom: "16px" }}>
+            {errorMessage}
+          </p>
+        )}
 
         <button
-        onClick={createGame}
-        className="
-          mt-6 rounded-xl bg-white text-slate-950 px-5 py-3 font-semibold
-          shadow-lg
-          transition-all duration-150
-          hover:bg-slate-200
-          active:translate-y-1
-          active:scale-95
-          active:shadow-sm
-        "
-      >
-        建立遊戲
-      </button>
-      </div>
-    </main>
+          type="submit"
+          className="button button-primary"
+          disabled={loading}
+        >
+          {loading ? "新增中..." : "新增遊戲"}
+        </button>
+      </form>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ npx prisma studio
 # 建遊戲爆掉時候用
 npx prisma db push
 npx prisma generate
+npx prisma migrate dev --name init
 
 # project 新增刪除存取
 
