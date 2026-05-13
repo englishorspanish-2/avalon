@@ -41,13 +41,18 @@ export default async function GamesPage() {
               <th>刺客目標座位</th>
               <th>任務數</th>
               <th>日期</th>
+              <th>操作</th>
             </tr>
           </thead>
 
           <tbody>
             {games.map((game) => (
               <tr key={game.gameId}>
-                <td>{game.gameId}</td>
+                <td>
+                  <Link href={`/games/${game.gameId}`}>
+                    {game.gameId}
+                  </Link>
+                </td>
                 <td>{game.playerCount ?? "-"}</td>
                 <td>{game.winnerSide ?? "-"}</td>
                 <td>{game.assassinTargetSeatNo ?? "-"}</td>
@@ -56,6 +61,14 @@ export default async function GamesPage() {
                   {game.gameDate
                     ? game.gameDate.toISOString().slice(0, 10)
                     : "-"}
+                </td>
+                <td>
+                  <Link
+                    href={`/games/${game.gameId}`}
+                    className="button button-secondary"
+                  >
+                    進入紀錄
+                  </Link>
                 </td>
               </tr>
             ))}

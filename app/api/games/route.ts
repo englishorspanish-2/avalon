@@ -43,10 +43,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const game = await prisma.game.create({
+    const count = playerCount ? Number(playerCount) : null;
+
+    const newGame = await prisma.game.create({
       data: {
         gameId,
-        playerCount: playerCount ? Number(playerCount) : null,
+        playerCount: count,
         winnerSide: winnerSide || null,
         assassinTargetSeatNo: assassinTargetSeatNo
           ? Number(assassinTargetSeatNo)
@@ -55,7 +57,17 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(game, { status: 201 });
+    if (count && count > 0) {
+      await prisma.player.createMany({
+        data: Array.from({ length: count }, (_, index) => ({
+          gameId,
+          seatNumber: index + 1,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    return NextResponse.json(newGame, { status: 201 });
   } catch (error) {
     console.error("POST /api/games error:", error);
 
