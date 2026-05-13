@@ -8,3 +8,8 @@ npx prisma db push
 npx prisma generate
 
 # project 新增刪除存取
+
+# 開啟venv
+cd C:\Users\Bloomberg\你的專案資料夾
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1 or & .\.venv\Scripts\Activate.ps1
