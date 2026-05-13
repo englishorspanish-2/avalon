@@ -111,6 +111,15 @@ a {
   color: #e5e7eb;
 }
 
+.button-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.button-danger:hover {
+  background: #b91c1c;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;

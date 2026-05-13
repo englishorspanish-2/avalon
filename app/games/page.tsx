@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import DeleteGameButton from "./DeleteGameButton";
 
 export default async function GamesPage() {
   const games = await prisma.game.findMany({
@@ -53,22 +54,29 @@ export default async function GamesPage() {
                     {game.gameId}
                   </Link>
                 </td>
+
                 <td>{game.playerCount ?? "-"}</td>
                 <td>{game.winnerSide ?? "-"}</td>
                 <td>{game.assassinTargetSeatNo ?? "-"}</td>
                 <td>{game.missions.length}</td>
+
                 <td>
                   {game.gameDate
                     ? game.gameDate.toISOString().slice(0, 10)
                     : "-"}
                 </td>
+
                 <td>
-                  <Link
-                    href={`/games/${game.gameId}`}
-                    className="button button-secondary"
-                  >
-                    進入紀錄
-                  </Link>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <Link
+                      href={`/games/${game.gameId}`}
+                      className="button button-secondary"
+                    >
+                      進入紀錄
+                    </Link>
+
+                    <DeleteGameButton gameId={game.gameId} />
+                  </div>
                 </td>
               </tr>
             ))}

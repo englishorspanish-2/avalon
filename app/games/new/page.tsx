@@ -128,7 +128,11 @@ export default function NewGamePage() {
 
         <button
           type="submit"
-          className="button button-primary"
+          className="button button-primary,px-4 py-2 rounded-lg bg-black text-white
+                      transition-all duration-150
+                      hover:opacity-90
+                      active:scale-95
+                      active:translate-y-0.5"
           disabled={loading}
         >
           {loading ? "新增中..." : "新增遊戲"}

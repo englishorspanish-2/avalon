@@ -168,10 +168,41 @@ export default function GameRecorder({ game }: GameRecorderProps) {
       assassinTargetSeatNo,
     });
   }
+  async function deleteGame() {
+    const confirmed = window.confirm(
+      `確定要刪除遊戲 ${game.gameId} 嗎？這會刪除所有相關紀錄。`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const response = await fetch(`/api/games/${game.gameId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      alert("刪除失敗");
+      return;
+    }
+
+    router.push("/games");
+    router.refresh();
+  }
 
   return (
     <div>
       <h1 className="page-title">遊戲紀錄：{game.gameId}</h1>
+
+      <div className="button-row">
+        <button
+          type="button"
+          className="button button-danger"
+          onClick={deleteGame}
+        >
+          刪除整場遊戲
+        </button>
+      </div>
       <p className="page-subtitle">
         這個頁面用來在 Avalon 遊戲進行中即時紀錄任務、提案、投票與勝負。
       </p>
@@ -582,3 +613,4 @@ export default function GameRecorder({ game }: GameRecorderProps) {
     </div>
   );
 }
+

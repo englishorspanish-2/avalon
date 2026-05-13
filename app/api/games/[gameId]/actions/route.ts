@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(
   request: Request,
-  context: { params: { gameId: string } }
+  context: { params: Promise<{ gameId: string }> }
 ) {
   try {
-    const { gameId } = context.params;
+    const { gameId } = await context.params;
     const body = await request.json();
     const { action } = body;
 
