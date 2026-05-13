@@ -5,7 +5,7 @@ import GameRecorder from "./GameRecorder";
 export default async function GameDetailPage({
   params,
 }: {
-  params: Promise <{ gameId: string }>;
+  params: Promise<{ gameId: string }>;
 }) {
   const game = await prisma.game.findUnique({
     where: {
